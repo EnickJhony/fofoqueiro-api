@@ -35,34 +35,101 @@ function parseDateRange(dateString) {
   return { start, end };
 }
 
+function parsePositiveInt(value) {
+  if (value === undefined) return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) return null;
+  return parsed;
+}
+
+function parsePageParams(query) {
+  const page = parsePositiveInt(query.page);
+  const limit = parsePositiveInt(query.limit);
+
+  if (query.page !== undefined && page === null) {
+    return { error: 'Parametro page invalido. Use um inteiro maior que 0.' };
+  }
+
+  if (query.limit !== undefined && limit === null) {
+    return { error: 'Parametro limit invalido. Use um inteiro maior que 0.' };
+  }
+
+  return {
+    page,
+    limit: limit ? Math.min(200, limit) : 20
+  };
+}
+
+function buildNewsWhere(query) {
+  const where = {};
+
+  if (query.source_name) {
+    where.source_name = String(query.source_name);
+  }
+
+  if (query.date) {
+    const range = parseDateRange(String(query.date));
+    if (!range) {
+      return { error: 'Formato de data invalido. Use YYYY-MM-DD' };
+    }
+    where.published_at = { gte: range.start, lt: range.end };
+  }
+
+  return { where };
+}
+
+function buildPaginationMeta(page, limit, total) {
+  const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1
+  };
+}
+
 app.get('/api/news', async (req, res, next) => {
   try {
-    const { limit, date, source_name } = req.query;
-    let take = 200;
-    if (limit) {
-      const parsed = Number(limit);
-      if (!Number.isNaN(parsed) && parsed > 0) take = Math.min(200, parsed);
+    const pagination = parsePageParams(req.query);
+    if (pagination.error) {
+      return res.status(400).json({ message: pagination.error });
     }
 
-    const where = {};
-
-    if (source_name) {
-      where.source_name = String(source_name);
+    const filters = buildNewsWhere(req.query);
+    if (filters.error) {
+      return res.status(400).json({ message: filters.error });
     }
 
-    if (date) {
-      const range = parseDateRange(String(date));
-      if (!range) return res.status(400).json({ message: 'Formato de data invalido. Use YYYY-MM-DD' });
-      where.published_at = { gte: range.start, lt: range.end };
+    const where = filters.where;
+    const orderBy = [{ published_at: 'desc' }, { id: 'desc' }];
+
+    if (pagination.page === null) {
+      const news = await prisma.news.findMany({
+        where,
+        orderBy,
+        take: pagination.limit
+      });
+
+      return res.json(news);
     }
 
-    const news = await prisma.news.findMany({
-      where,
-      orderBy: { published_at: 'desc' },
-      take
+    const skip = (pagination.page - 1) * pagination.limit;
+    const [total, news] = await Promise.all([
+      prisma.news.count({ where }),
+      prisma.news.findMany({
+        where,
+        orderBy,
+        skip,
+        take: pagination.limit
+      })
+    ]);
+
+    res.json({
+      data: news,
+      pagination: buildPaginationMeta(pagination.page, pagination.limit, total)
     });
-
-    res.json(news);
   } catch (error) {
     next(error);
   }
@@ -74,13 +141,39 @@ app.get('/api/news/today', async (req, res, next) => {
     const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
     const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
 
-    const news = await prisma.news.findMany({
-      where: { published_at: { gte: start, lt: end } },
-      orderBy: { published_at: 'desc' },
-      take: 200
-    });
+    const pagination = parsePageParams(req.query);
+    if (pagination.error) {
+      return res.status(400).json({ message: pagination.error });
+    }
 
-    res.json(news);
+    const where = { published_at: { gte: start, lt: end } };
+    const orderBy = [{ published_at: 'desc' }, { id: 'desc' }];
+
+    if (pagination.page === null) {
+      const news = await prisma.news.findMany({
+        where,
+        orderBy,
+        take: pagination.limit
+      });
+
+      return res.json(news);
+    }
+
+    const skip = (pagination.page - 1) * pagination.limit;
+    const [total, news] = await Promise.all([
+      prisma.news.count({ where }),
+      prisma.news.findMany({
+        where,
+        orderBy,
+        skip,
+        take: pagination.limit
+      })
+    ]);
+
+    res.json({
+      data: news,
+      pagination: buildPaginationMeta(pagination.page, pagination.limit, total)
+    });
   } catch (error) {
     next(error);
   }

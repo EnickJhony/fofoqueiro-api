@@ -12,6 +12,7 @@ A aplicacao retorna noticias com filtros por:
 - noticias de hoje
 - noticias de um dia especifico
 - noticias de um portal especifico, via `source_name`
+- paginação opcional na listagem geral e na rota de hoje
 
 Tambem existe uma rota de `health` para validar se a API e o banco estao respondendo corretamente.
 
@@ -48,7 +49,8 @@ A tabela usada pela API e `news`, com os campos abaixo:
 - A API e apenas para leitura
 - Nao existem rotas de `POST`, `PUT`, `PATCH` ou `DELETE`
 - A listagem padrao considera as noticias mais recentes
-- O retorno padrao em `GET /api/news` limita a resposta a no maximo 200 registros
+- O retorno padrao em `GET /api/news` continua sendo um array com no maximo 200 registros
+- Quando `page` for informado em `GET /api/news` ou `GET /api/news/today`, a resposta passa a incluir metadados de paginacao
 
 ## Variaveis de ambiente
 
@@ -133,12 +135,19 @@ Query params aceitos:
 - `limit`: quantidade de registros desejada, com maximo de 200
 - `date`: filtra por dia especifico no formato `YYYY-MM-DD`
 - `source_name`: filtra pelo nome do portal
+- `page`: numero da pagina, maior que 0. Quando informado, a resposta inclui metadados de paginacao
+
+Comportamento:
+
+- sem `page`: resposta antiga, um array com as noticias
+- com `page`: resposta em formato `{ data, pagination }`
 
 Exemplos:
 
 ```bash
 curl.exe "http://localhost:3333/api/news"
 curl.exe "http://localhost:3333/api/news?limit=20"
+curl.exe "http://localhost:3333/api/news?page=1&limit=20"
 curl.exe "http://localhost:3333/api/news?date=2026-05-25"
 curl.exe "http://localhost:3333/api/news?source_name=Portal%20do%20Holanda"
 ```
@@ -147,10 +156,13 @@ curl.exe "http://localhost:3333/api/news?source_name=Portal%20do%20Holanda"
 
 Retorna as noticias publicadas no dia atual.
 
+Tambem aceita `page` e `limit` com o mesmo comportamento de `GET /api/news`.
+
 Exemplo:
 
 ```bash
 curl.exe http://localhost:3333/api/news/today
+curl.exe "http://localhost:3333/api/news/today?page=1&limit=20"
 ```
 
 ### `GET /api/news/:id`
@@ -169,6 +181,12 @@ curl.exe http://localhost:3333/api/news/1
 
 ```bash
 curl.exe "http://localhost:3333/api/news?limit=50"
+```
+
+### Buscar a segunda pagina com 20 noticias por pagina
+
+```bash
+curl.exe "http://localhost:3333/api/news?page=2&limit=20"
 ```
 
 ### Buscar as noticias de um dia especifico
