@@ -94,7 +94,7 @@ Retorna uma mensagem simples de boas-vindas.
 Exemplo:
 
 ```bash
-curl.exe http://localhost:3000/
+curl.exe http://localhost:3333/
 ```
 
 Resposta:
@@ -112,7 +112,7 @@ Verifica se a API esta no ar e se o banco esta acessivel.
 Exemplo:
 
 ```bash
-curl.exe -i http://localhost:3000/health
+curl.exe -i http://localhost:3333/health
 ```
 
 Resposta esperada quando o banco responde corretamente:
@@ -137,10 +137,10 @@ Query params aceitos:
 Exemplos:
 
 ```bash
-curl.exe http://localhost:3000/api/news
-curl.exe "http://localhost:3000/api/news?limit=20"
-curl.exe "http://localhost:3000/api/news?date=2026-05-25"
-curl.exe "http://localhost:3000/api/news?source_name=Portal%20do%20Holanda"
+curl.exe "http://localhost:3333/api/news"
+curl.exe "http://localhost:3333/api/news?limit=20"
+curl.exe "http://localhost:3333/api/news?date=2026-05-25"
+curl.exe "http://localhost:3333/api/news?source_name=Portal%20do%20Holanda"
 ```
 
 ### `GET /api/news/today`
@@ -150,7 +150,7 @@ Retorna as noticias publicadas no dia atual.
 Exemplo:
 
 ```bash
-curl.exe http://localhost:3000/api/news/today
+curl.exe http://localhost:3333/api/news/today
 ```
 
 ### `GET /api/news/:id`
@@ -160,7 +160,7 @@ Retorna uma noticia especifica pelo `id`.
 Exemplo:
 
 ```bash
-curl.exe http://localhost:3000/api/news/1
+curl.exe http://localhost:3333/api/news/1
 ```
 
 ## Exemplos de uso
@@ -168,41 +168,41 @@ curl.exe http://localhost:3000/api/news/1
 ### Buscar as 50 noticias mais recentes
 
 ```bash
-curl.exe "http://localhost:3000/api/news?limit=50"
+curl.exe "http://localhost:3333/api/news?limit=50"
 ```
 
 ### Buscar as noticias de um dia especifico
 
 ```bash
-curl.exe "http://localhost:3000/api/news?date=2026-05-24"
+curl.exe "http://localhost:3333/api/news?date=2026-05-24"
 ```
 
 ### Buscar noticias de um portal especifico
 
 ```bash
-curl.exe "http://localhost:3000/api/news?source_name=Portal%20Em%20Tempo"
+curl.exe "http://localhost:3333/api/news?source_name=Portal%20Em%20Tempo"
 ```
 
 ### Buscar noticias de hoje
 
 ```bash
-curl.exe http://localhost:3000/api/news/today
+curl.exe http://localhost:3333/api/news/today
 ```
 
 ## Observacoes importantes
 
 - A coluna usada para ordenacao e filtro por data e `published_at`
 - Se `DATABASE_URL` estiver incorreto, a rota `/health` vai falhar
-- Em ambiente Windows, e comum precisar encerrar o processo da porta 3000 antes de regenerar o Prisma Client
+- Em ambiente Windows, e comum precisar encerrar o processo da porta 3333 antes de regenerar o Prisma Client
 
 ## Validao rapida
 
 Se quiser testar rapidamente a API depois de subir o servidor:
 
 ```bash
-curl.exe http://localhost:3000/
-curl.exe -i http://localhost:3000/health
-curl.exe -i http://localhost:3000/api/news
+curl.exe http://localhost:3333/
+curl.exe -i http://localhost:3333/health
+curl.exe -i http://localhost:3333/api/news
 ```
 
 ## Licenca
