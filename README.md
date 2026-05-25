@@ -56,7 +56,7 @@ Crie um arquivo `.env` na raiz do projeto com este conteudo:
 
 ```env
 DATABASE_URL="postgresql://usuario:senha@localhost:5432/nome_do_banco"
-PORT=3000
+PORT=3333
 ```
 
 ## Como rodar
