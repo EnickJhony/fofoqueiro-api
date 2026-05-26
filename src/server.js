@@ -63,6 +63,13 @@ function parsePageParams(query) {
 function buildNewsWhere(query) {
   const where = {};
 
+  if (query.title) {
+    where.title = {
+      contains: String(query.title),
+      mode: 'insensitive'
+    };
+  }
+
   if (query.source_name) {
     where.source_name = String(query.source_name);
   }
