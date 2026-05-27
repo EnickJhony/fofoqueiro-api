@@ -142,6 +142,21 @@ app.get('/api/news', async (req, res, next) => {
   }
 });
 
+app.get('/api/portals', async (_req, res, next) => {
+  try {
+    const portals = await prisma.news.groupBy({
+      by: ['source_name'],
+      orderBy: {
+        source_name: 'asc'
+      }
+    });
+
+    res.json(portals.map((portal) => portal.source_name));
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get('/api/news/today', async (req, res, next) => {
   try {
     const now = new Date();
